@@ -1,127 +1,117 @@
-# Water Detection Sensor Using STM32F407
+# Multi-Sensor and Peripherals System Using STM32F407
 
-This project demonstrates how to build a water detection system using the STM32F407 microcontroller **without using external libraries**. All necessary functions are developed from scratch to manage GPIOs, timers, and interrupts. The sensor detects whether water is present or not, triggering appropriate actions based on the input signal.
-
-## Features
-- **Water Detection**: Detects if water is present or absent.
-- **No External Libraries**: All drivers and functionalities are implemented from scratch.
-- **STM32F407 Microcontroller**: Exploits the power of the STM32 series for precise control.
-- **Digital Signal Output**: Simple high/low signal to indicate water detection.
-- **Efficient GPIO Control**: Low-latency response through direct register manipulation.
+This project demonstrates the integration of various **sensors**, **displays**, and **communication modules** with the **STM32F407 microcontroller**. All drivers are implemented from scratch without external libraries to provide precise control over each peripheral. The goal is to develop a multi-functional embedded system that collects sensor data, displays it on different screens, and communicates wirelessly or through Ethernet.
 
 ---
 
-## Components Required
-1. **STM32F407 Discovery Board** or STM32F407-based custom board  
-2. **Water Sensor Module** (with digital output)  
-3. **Resistors and Jumper Wires**  
-4. **Breadboard** (optional for easy prototyping)  
-5. **LED or Buzzer** (for water alert)  
-6. **Power Supply (5V)**
+## Supported Sensors and Peripherals
+
+### **Sensors:**
+- **Barometer**: Measures atmospheric pressure.
+- **DHT11**: Measures temperature and humidity.
+- **DS18B20**: Measures temperature using a digital protocol.
+- **Gyroscope**: Measures angular velocity.
+- **IR Reflective Sensor**: Detects reflective surfaces or objects.
+- **IR Remote Control**: Receives signals from an infrared remote.
+- **Knock Sensor**: Detects physical vibrations or knocks.
+- **PIR Sensor**: Detects motion.
+- **Sound System**: Captures audio signals.
+- **Ultrasonic Sensor**: Measures distance using sound waves.
+- **Vibration Sensor**: Detects physical vibrations.
+- **Water Sensor**: Detects the presence of water.
+
+### **Displays and Interfaces:**
+- **7-Segment Display**: Displays numbers (0-9) using multiple segments.
+- **LCD**: Alphanumeric display for text.
+- **GLCD**: Graphical display for custom images and shapes.
+- **TFT Touch Screen**: Touch-enabled graphical interface.
+
+### **Peripherals:**
+- **ADC (Analog-to-Digital Converter)**: Reads analog values (e.g., from sensors).
+- **PWM (Pulse-Width Modulation)**: Controls LEDs, motors, and more.
+- **UART Communication**: For serial communication.
+- **EEPROM**: Stores data non-volatilely.
+- **SD Card**: For data logging and storage.
+- **Audio System**: Plays sounds or audio files.
+- **UART-WiFi Module**: Enables WiFi communication.
+- **UART-Ethernet Module**: Enables Ethernet communication.
 
 ---
 
-## Circuit Diagram
+## Circuit Connections
 
-1. Connect the **VCC** and **GND** of the sensor to 3.3V and GND of STM32F407.
-2. Connect the **digital output** of the water sensor to **PA0** (or another GPIO pin).
-3. (Optional) Connect an **LED or Buzzer** to a GPIO pin (e.g., PB5) to indicate water detection.
+Below is an overview of connections between the STM32F407 and the peripherals:
+
+| **Component**        | **STM32 Pin**   | **Description** |
+|----------------------|-----------------|-----------------|
+| Barometer            | I2C (PB6, PB7)  | Communicates via I2C |
+| DHT11                | GPIO (PA1)      | Digital sensor for temperature & humidity |
+| DS18B20              | GPIO (PA2)      | One-wire temperature sensor |
+| Gyroscope            | I2C (PB6, PB7)  | Measures angular velocity |
+| IR Reflective Sensor | GPIO (PA3)      | Detects reflective surfaces |
+| IR Remote Receiver   | GPIO (PA4)      | Receives IR signals |
+| Knock Sensor         | GPIO (PA5)      | Detects physical knocks |
+| PIR Sensor           | GPIO (PA6)      | Detects motion |
+| Sound System         | ADC (PA7)       | Captures audio signals |
+| Ultrasonic Sensor    | GPIO (PB0, PB1) | Measures distance |
+| Vibration Sensor     | GPIO (PB2)      | Detects vibrations |
+| Water Sensor         | GPIO (PB3)      | Detects water presence |
+| 7-Segment Display    | GPIO (PC0-PC6)  | Displays numbers 0-9 |
+| LCD Display          | GPIO (PC7-PC12) | Displays text and messages |
+| GLCD                 | SPI (PA5, PA6)  | Graphical LCD interface |
+| TFT Touch Screen     | SPI (PA5, PA6)  | Displays UI and detects touch |
+| EEPROM               | I2C (PB6, PB7)  | Non-volatile memory |
+| SD Card              | SPI (PA5, PA6)  | Data storage |
+| Audio System         | PWM (PB4)       | Controls audio output |
+| UART-WiFi            | UART (PA9, PA10)| Wireless communication |
+| UART-Ethernet        | UART (PB10, PB11)| Ethernet communication |
 
 ---
 
-## Pin Configuration
+## Software Implementation Overview
 
-| Component            | Pin on STM32F407 |
-|----------------------|------------------|
-| Water Sensor VCC     | 3.3V             |
-| Water Sensor GND     | GND              |
-| Water Sensor Output  | PA0              |
-| LED/Buzzer           | PB5              |
-
----
-
-## Software Implementation
-
-1. **GPIO Initialization**: Configure GPIO pins for the sensor input and LED output.
-2. **Polling or Interrupt**: Use polling or external interrupts to detect changes in the sensor state.
-3. **Action**: When water is detected, trigger the LED or buzzer.
+1. **GPIO Initialization**: Configures GPIO pins for various sensors and peripherals.
+2. **ADC Configuration**: Reads analog inputs from the sound system and other sensors.
+3. **PWM Control**: Generates signals to control LEDs, motors, or audio output.
+4. **UART Communication**: Sends data over WiFi, Ethernet, or to other serial devices.
+5. **I2C & SPI Communication**: Manages communication with displays, EEPROM, and other I2C/SPI devices.
+6. **Data Logging**: Stores sensor data on SD Card.
+7. **Interrupts & Timers**: Ensures fast responses to external events (e.g., knocks, motion, remote control signals).
 
 ---
-
-## Code Overview
-
-The project initializes GPIOs and reads the water sensor status directly from the microcontroller registers. If water is detected, an LED lights up or a buzzer sounds.
-
-### Code Example (Main Logic)
-
-```c
-#include "stm32f407xx.h"
-
-// Function to initialize GPIO for PA0 (Sensor) and PB5 (LED/Buzzer)
-void GPIO_Init(void) {
-    // Enable GPIOA and GPIOB clocks
-    RCC->AHB1ENR |= (1 << 0); // GPIOA
-    RCC->AHB1ENR |= (1 << 1); // GPIOB
-
-    // Configure PA0 as input (Water Sensor)
-    GPIOA->MODER &= ~(0x3 << (0 * 2)); // Clear mode bits
-
-    // Configure PB5 as output (LED/Buzzer)
-    GPIOB->MODER |= (1 << (5 * 2)); // Set PB5 as output
-}
-
-// Function to read the water sensor status
-int IsWaterDetected(void) {
-    return (GPIOA->IDR & 0x1); // Read PA0 status
-}
-
-// Main function
-int main(void) {
-    GPIO_Init();
-
-    while (1) {
-        if (IsWaterDetected()) {
-            // Water detected, turn on LED/Buzzer
-            GPIOB->ODR |= (1 << 5);
-        } else {
-            // No water, turn off LED/Buzzer
-            GPIOB->ODR &= ~(1 << 5);
-        }
-    }
-}
-```
 
 ---
 
 ## How to Compile and Flash
 
 1. **Set up Toolchain**: Use ARM GCC or STM32CubeIDE.
-2. **Compile the Code**: Build the project using the chosen toolchain.
-3. **Flash the Binary**: Use a programmer like ST-Link or a USB-to-serial adapter to flash the code to the STM32F407 board.
+2. **Compile the Code**: Build the project using your preferred toolchain.
+3. **Flash the Binary**: Use ST-Link or a USB-to-serial adapter to flash the code to the STM32F407 board.
 
 ---
 
 ## Usage Instructions
 
-1. Power the STM32F407 board and connect the water sensor.
-2. If water is present, the LED or buzzer will turn on.
-3. If water is absent, the LED or buzzer will remain off.
+1. Connect all sensors and peripherals as described in the circuit diagram.
+2. Power the STM32F407 board.
+3. Monitor sensor readings via UART or display them on the LCD/GLCD/TFT screen.
+4. Use WiFi/Ethernet modules to send data remotely.
 
 ---
 
 ## Troubleshooting
 
-1. **Sensor Not Responding**: Check the wiring and connections.
-2. **LED/Buzzer Not Working**: Ensure GPIO configuration is correct.
-3. **Compile Errors**: Make sure you are using the correct toolchain and device settings.
+1. **Sensor Data Not Displayed**: Check GPIO configurations and wiring.
+2. **Communication Issues**: Ensure correct UART settings.
+3. **Display Issues**: Verify SPI/I2C connections and configurations.
 
 ---
 
 ## Future Improvements
 
-- Implement **debouncing** for the water sensor input.
-- Add **interrupt-based detection** for faster response.
-- Integrate an **LCD display** to show sensor status.
+- Add **DMA** for faster data transfers.
+- Implement **RTOS** for task management.
+- Integrate **MQTT** or **HTTP** protocols for IoT functionality.
 
 ---
 
@@ -133,4 +123,5 @@ This project is licensed under the MIT License – feel free to use, modify, and
 
 ## Author
 
-Developed by [Carl khalil]. For any questions or suggestions, please contact [kiroloskhalil38@gmail.com].
+Developed by [kirolos khalil]. For any questions or suggestions, please contact [kiroloskhalil38@example.com].
+LinkedIn : https://www.linkedin.com/in/carl-khalil-544755134/
