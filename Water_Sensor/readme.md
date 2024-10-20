@@ -133,5 +133,5 @@ This project is licensed under the MIT License – feel free to use, modify, and
 
 ## Author
 
-Developed by [kirolos khalil]. For any questions or suggestions, please contact [kiroloskhalil@example.com].
+Developed by [kirolos khalil]. For any questions or suggestions, please contact [kiroloskhalil@gmail.com].
 LinkedIn : https://www.linkedin.com/in/carl-khalil-544755134/
